@@ -1,0 +1,1434 @@
+
+<html>
+<head>
+    <title>Chess Puzzle Training V5.4</title>
+	<link rel='stylesheet' href='chessboard-0.3.0.css'>
+	<link rel='stylesheet' href='bootstrap.min.css'>
+    <link rel='stylesheet' href='font-awesome-V 5.15.1.all.min.css'>
+    <link rel="icon" type="image/png" href="ChessKnight.png" />
+	<script src='jquery.min.js'></script>
+	<script src='chess.min.js'></script>
+	<script src='allPuzzlesV3.js'></script>
+	<script src='stockfishAnalyze.js'></script>
+	<!--<script src='feather.min-V4.28.0.js'></script>-->
+    <script src='leelaChessZeroAnalyze.js'></script>
+	<script src='chessboard-0.3.0.min.js'></script>
+    <script src='font-awesome-V5.15.1.all.min.js'></script>
+    <script src='_mastersGamesStat12_MinElo2100_MinOcc3_NbMv3_NbMaxMoves40.js'></script>
+	<script src='fenToEco.js'></script>
+	<style type='text/css'> 
+	select>option{ 
+		height:20px;
+    }
+html { font-size: 1rem; } 
+    .table td, .table th {
+         padding: 1px;
+         vertical-align: top;
+         border-top: 1px solid #dee2e6;
+		 font-size: 1.3rem;
+     }
+    .btn-primary {
+          color: #fff;
+          background-color: #42a5f5;
+          border-color: #2196f3;
+       }
+    .btn-info {
+          color: #fff;
+          background-color: #90caf9;
+          border-color: #2196f3;
+       }
+	  .notation-322f9, .alpha-d2270{
+		font-size: 1.3rem;
+	   }
+	.btn {
+	  font-size: 1.5rem;
+		line-height: 1.5rem;
+	}
+	p{
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+.row .col{
+  float: none !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+.inTheMiddle{
+    width: 800px;
+    float: none !important;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+.defaultFontSizeSmall{
+ font-size: 0.8rem;
+}
+
+.defaultFontSize{
+ font-size: 1rem;
+}
+
+.defaultFontSizeMedium{
+ font-size: 1.3rem;
+}
+
+.defaultFontSizeBig{
+ font-size: 1.8rem;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}background-color: red;
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+
+</style>
+</head>
+<!-- <body  style="background-color:#fafafa;"> -->
+<body  style="background-color:#f5f5f5">
+
+	<div class='inTheMiddle'>
+			<h2><div id='idTitle'></div></h2>
+			<div id='idPuzzleInfo'></div>
+			<div id='idPuzzleRes'></div>
+			<div id='idPuzzleChoice'></div><div id='idPuzzleList'></div>
+
+        <form name="chronoForm">
+            <input type="text"  class="defaultFontSizeMedium" name="chronotime" id="chronotime" value="0:00:00:00" readonly size="11"/>
+            <button type="button" id="startstop" name="startstop" class='btn btn-warning' value="start!" onClick="chronoStart()">
+                <i class="fas fa-play fa"></i>                
+                <!--<i data-feather="play"></i> -->
+                <!-- <i data-feather="pause"></i> -->
+            </button>
+            <input type="button" name="reset" class='btn btn-info' value="reset!" onClick="chronoReset()" />
+            <input type="button" name="sideToPlay" id="sideToPlay" class='btn btn-info' value="sideToPlay" />
+        </form>
+	</div> 
+
+	<div id='board' class='inTheMiddle'></div>
+    <div id='openingInfoId' class='inTheMiddle'></div>
+	<div class='inTheMiddle'>
+		<button type='button' id='before' value='<<<' class='btn btn-success' onclick='Previous()' >
+            <i class="fas fa-arrow-alt-circle-left fa"></i>
+        </button>&nbsp;
+		<button type='button' id='after' value='>>>' class='btn btn-success'  onclick='Next()'>
+            <i class="fas fa-arrow-alt-circle-right fa"></i>
+        </button>&nbsp;
+		<button type='button' id='reloadId' value='Recharger Puzzle' class='btn btn-primary'  onclick='Reload()' >
+             <i class="fas fa-sync-alt fa"></i>
+        </button>&nbsp;
+
+		<button type='button' id='solutionId' value='Solution' class='btn btn-primary' onclick='showSolution()'>
+            <i class="fas fa-robot fa"></i>&nbsp;Solution
+        </button>&nbsp;
+		<button type='button' id='copyFenId' value='Copier fen' class='btn btn-primary' onclick='CopyTextToClipboard()'>
+            <i class="fas fa-copy fa"></i>&nbsp;Fen
+        </button>&nbsp;
+	</div>
+	<div class='inTheMiddle'>
+		<select id="chessboardSizeId" onchange="changeChessBoardSize(this.value);" class='browser-default'>
+			<option value="400">400 px</option>
+			<option value="500">500 px</option>
+			<option value="600">600 px</option>
+			<option value="700" selected>700 px</option>
+			<option value="800">800 px</option>
+			<option value="900">900 px</option>
+			<option value="1000">1000 px</option>
+            <option value="1100">1100 px</option>
+            <option value="1200">1200 px</option>
+		</select>
+	</div>
+	<div class='inTheMiddle'>
+		<button type='button' id='puzzleCreaId' value='Création Puzzle' class='btn btn-info'  onclick='puzzleCreator();'>&nbsp;
+            <i class="fas fa-edit fa"></i>&nbsp;Puzzle
+        </button>&nbsp;
+		<input type='button' id='ShowAllFenId' value='All Fen' class='btn btn-info' onclick='showAllFen()' />&nbsp;
+		<input type='button' id='ReverseId' value='Reverse Puzzle ordre' class='btn btn-info' onclick='ReversePuzzleOrder()' />&nbsp;
+        <input type='button' id='flip' value='Turn' class='btn btn-info' onclick='flipBoard()'/>&nbsp;
+        <!-- Default switch -->
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="customSwitches">
+          <label class="custom-control-label" for="customSwitches" style='font-size: 1.25rem;'>Montrer score</label>
+        </div>
+		<div id='idBuildPuzzle'>
+			<input type="text" id="fenToLoadId" name="name"  size="30">
+			<input type='button' id='before' value='Charger FEN' class='btn btn-success' onclick='LoadFenToCreatePuzzle()'/>
+			<input type="text" id="movesToLoadId" name="name"  size='10' maxlength='400' style='width:6em' >
+			<input type='button' id='before' value='Jouer' class='btn btn-success' onclick='PlayMoves()' />
+		</div>
+	</div>
+    <div class='inTheMiddle'>Puzzles KO : </div><div id='idPuzzlesErrorsList' class='inTheMiddle'></div>
+    <div id='idPuzzleSolution'></div>
+	<div id='idPuzzleSolutionComment'></div>
+    <div id='idPuzzleMasterStat'></div>
+	<div id='idAnalyseStockfish'></div>
+    <div id='idAnalyseLeelaChessZero'></div>
+	<script type='text/javascript'>
+var board, currentPuzzle
+game = new Chess(),
+numCurrMove=0, numCurrPuzzle=0, currentPuzzleMoves=[''],
+titleEl = $('#idTitle')
+puzzleTitleEl = $('#idPuzzleInfo');
+var puzzleIni = true;
+var puzzleRes="";
+var puzzleFinish = false;
+var fenHisto=[''];
+var allFenHisto=[''];
+var puzzlesErrorsRef=['-1'];
+var puzzlesMoveErrorsRef=['-1'];
+var showAllSolution = false;
+var activateOrientation = true;
+var okKoSize = 16;
+var usePuzzleErrorRepeat = false;
+var firstMoveEnable = false;
+var iconPlay='<i class="fas fa-play fa"></i>';
+var iconPause='<i class="fas fa-pause fa"></i>';
+var wrongFen = "8/8/8/8/8/8/8/8 w - - 0 1";
+//var currentPuzzle;
+var lastMoveTime = new Date();
+var puzzlesChoosen = 0;//Puzzles list choice = Owngames/book/etc. 
+	// do not pick up pieces if the game is over
+		// only pick up pieces for the side to move
+		var onDragStart = function(source, piece, position, orientation) {
+			  if (game.game_over() === true ||
+				  (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+				  (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+				return false;
+			  }
+			  puzzleIni=false;
+			  lastMoveTime = new Date();
+			  chronoContinue();
+			  console.log("onDragStart end");
+		};//onDragStart
+
+		var onDrop = function(source, target, piece, newPos, oldPos, orientation) {
+			  // see if the move is legal
+			  puzzleIni=false;
+			  var move = game.move({
+				from: source,
+				to: target,
+				promotion: 'q' // NOTE: always promote to a queen for example simplicity
+			  });
+
+			  // illegal move
+			  if (move === null) return 'snapback';
+
+			  updateStatus(newPos);
+			  console.log("onDrop end");
+		};//onDrop
+
+		// update the board position after the piece snap 
+		// for castling, en passant, pawn promotion
+		var onSnapEnd = function() {
+			  board.position(game.fen());
+			  fenHisto.push(game.fen());
+			  allFenHisto.push(game.fen());
+			  console.log("fenHisto1 = "+fenHisto);
+		};//onSnapEnd
+
+		var updateStatus = function(newPos) {
+				  var status = '';
+				  var reloadPuzzleAfterError = false;
+				   var puzzleSuccessfullFinished = false;
+				   lastMoveTime = new Date();
+				   chronoContinue();
+
+				  var moveColor = 'White';
+				  if (game.turn() === 'b') {
+					moveColor = 'Black';
+				  }
+
+				  // checkmate?
+				  if (game.in_checkmate() === true) {
+					status = 'Game over, ' + moveColor + ' is in checkmate.';
+				  }
+
+				  // draw?
+				  else if (game.in_draw() === true) {
+					status = 'Game over, drawn position';
+				  }
+
+				  // game still on
+				  else {
+					status = moveColor + ' to move';
+
+					// check?
+					if (game.in_check() === true) {
+					  status += ', ' + moveColor + ' is in check';
+					}
+				  }
+                
+				var gamepgn = game.pgn()+'';
+				var  actualFen = ' <font color="grey" class="defaultFontSizeMedium" id="actualFen" >'+game.fen()+'</font>';
+				if(gamepgn.indexOf(']')>0){
+					gamepgn=gamepgn.substr(gamepgn.indexOf(']')+1,gamepgn.length);
+					if(gamepgn.indexOf(']')>0){
+						gamepgn=gamepgn.substr(gamepgn.indexOf(']')+1,gamepgn.length);
+					}
+				}
+		       
+				console.log("numCurrMove="+numCurrMove+" firstMoveEnable="+firstMoveEnable);
+				isYourTurnToPlay(numCurrMove);
+				if((numCurrMove%2 == 0 && firstMoveEnable==false) || (numCurrMove%2 == 1 && firstMoveEnable==true)){
+					//test move
+					//load last FEN
+					//var isIni = numCurrMove===0;
+					console.log("isIni ? "+puzzleIni + " numCurrMove="+numCurrMove);
+					
+					var lastFen = fenHisto[fenHisto.length-1];
+					console.log("fenHisto.length="+fenHisto.length+" lastFen="+lastFen)
+					
+					var moveToPlay = currentPuzzleMoves[numCurrMove];
+					console.log("moveToPlay1="+moveToPlay+" lastFen="+lastFen);
+					var tesPlayerMove = new Chess(lastFen)
+					tesPlayerMove.move(moveToPlay);
+                    //TODO relaod from historic fen, the move before player move. Load this fen in tesPlayerMove, play expected move and compare Fen
+					var expectedFen = tesPlayerMove.fen();
+                    var wrongColor = false;                    
+                    if (game.turn() === 'b' && expectedFen.indexOf(' b ')>0){
+                            console.log("Expected black move");
+                     }else if (game.turn() === 'w' && expectedFen.indexOf(' w ')>0){
+                                console.log("Expected black move");
+                    }else{
+                        console.log("KOOO -> not same color !!!");
+                        wrongColor=true;
+                    }
+
+
+                    if(expectedFen == lastFen || wrongColor === true){
+						//Bad FEN -> MAJ Fen
+                        console.log("KOOO -> expectedFen=lastFen -> "+expectedFen+" moveToPlay="+moveToPlay+" wrongColor="+wrongColor);
+                        var mv1 = currentPuzzleMoves[0];
+                     
+                        tesPlayerMove.move(mv1);
+                        expectedFen = tesPlayerMove.fen();
+                        console.log("KOOO mv1 -> "+mv1 + " newFen:"+expectedFen);   
+                        if(firstMoveEnable){
+                          var mv2 = currentPuzzleMoves[1];
+                          tesPlayerMove.move(mv2); 
+                          expectedFen = tesPlayerMove.fen();
+                          console.log("KOOO mv2 -> "+mv2 + " newFen:"+expectedFen); 
+                        }
+                    }
+					
+					console.log("expectedFen="+expectedFen + " game.fen()="+game.fen());
+					var moveOk = (expectedFen==game.fen());
+                    var puzzleIniNewFirstMoveEnableFalse = numCurrMove==0 && currentPuzzle.firstMoveEnable=='false';
+                    var puzzleIniNewFirstMoveEnableTrue = numCurrMove==1 && currentPuzzle.firstMoveEnable=='true';
+                    var puzzleIniNew = puzzleIniNewFirstMoveEnableFalse || puzzleIniNewFirstMoveEnableTrue;
+                    console.log("puzzleIniNew="+puzzleIniNew + " puzzleIniNewFirstMoveEnableFalse="+puzzleIniNewFirstMoveEnableFalse+ " puzzleIniNewFirstMoveEnableTrue="+puzzleIniNewFirstMoveEnableTrue+" numCurrMove="+numCurrMove+" currentPuzzle.firstMoveEnable="+currentPuzzle.firstMoveEnable);
+
+					var isBadMove = moveOk==false && puzzleIni==false;
+                    var playerNumMoveToShow = (numCurrMove/2)+1;
+                    if(playerNumMoveToShow%1==0.5){
+                        playerNumMoveToShow=playerNumMoveToShow-0.5;
+                    }
+                    //var isBadMove = moveOk==false && puzzleIniNew==false;
+                    console.log("isBadMove="+isBadMove+" moveOk="+moveOk+" puzzleIni="+puzzleIni);
+					if(isBadMove){
+                        console.log("Bad move !! -> isBadMove="+isBadMove + " moveOk="+moveOk+" puzzleIni="+puzzleIni +" numCurrMove="+numCurrMove+" expectedFen="+expectedFen+" game.fen=" +game.fen());
+                        addBadMoveToHisto(numCurrPuzzle, numCurrMove);
+
+						if ( confirm( 'Bad move. Reload Puzzle ?' ) ) {
+								// Code à éxécuter si le l'utilisateur clique sur "OK"
+								
+								reloadPuzzleAfterError=true;
+							} else {
+								// Code à éxécuter si l'utilisateur clique sur "Annuler" 
+							}
+						puzzleRes = puzzleRes + "<b style='color:red;font-size:"+okKoSize+"px'>"+playerNumMoveToShow+"&#10008;</b>";
+                        if(numCurrMove>2 && (numCurrMove%10==0  || numCurrMove%9==0)){
+                            puzzleRes = puzzleRes + "<br/>";
+                        }
+						$("#idPuzzleRes").html(puzzleRes);
+						puzzleFinish = false;
+						majEngineAnalyze(game.fen());
+					}else if(puzzleIni==false) {
+						puzzleRes = puzzleRes + "<b style='color:green;font-size:"+okKoSize+"px'>"+playerNumMoveToShow+"&#10004;</b>";
+                        if(numCurrMove>2 && (numCurrMove%10==0  || numCurrMove%9==0 )){
+                            puzzleRes = puzzleRes + "<br/>";
+                        }						
+                        $("#idPuzzleRes").html( puzzleRes);
+						
+					}
+					console.log("expectedFen = "+expectedFen + " player move="+game.fen()+" Equals ? "+(moveOk));
+					
+					
+					// play next move
+					numCurrMove=numCurrMove+1;
+                    console.log("play next move 1 | numCurrMove="+numCurrMove);
+					moveToPlay = currentPuzzleMoves[numCurrMove];
+					console.log("moveToPlay2="+moveToPlay);
+					console.log("Play  : "+moveToPlay);
+					fenHisto.push(game.fen());
+					 allFenHisto.push(game.fen());
+					console.log("fenHisto2 = "+fenHisto);
+					majEngineAnalyze(game.fen());
+                
+					game.move(moveToPlay);
+                    alertOnMove(moveToPlay);
+					console.log("board FEN : "+board.fen());
+					majEngineAnalyze(game.fen());
+                    findMoveInMasterDb();
+					//Last puzzle Move ?
+					console.log("numCurrMove="+numCurrMove+" currentPuzzleMoves.length="+currentPuzzleMoves.length+" isBadMove="+isBadMove);
+					if(isBadMove==false && (numCurrMove+1)>=currentPuzzleMoves.length){
+						puzzleRes = puzzleRes + "<b style='color:green;font-size:"+okKoSize+"px'> Done!</b>";
+						$("#idPuzzleRes").html( puzzleRes);
+						puzzleFinish = true;
+						if(puzzleIni==false){
+							puzzleSuccessfullFinished = true;
+                            if(currentPuzzle.puzzleSolutionComment.length>1){
+                                alert("Commentaires sur la solution : "+currentPuzzle.puzzleSolutionComment);
+                            }
+						}
+						
+						//onSnapEnd();
+						//Next();
+					}
+					puzzleIni=false;
+				}else{
+					fenHisto.push(game.fen());
+					 allFenHisto.push(game.fen());
+					console.log("fenHisto3 = "+fenHisto);
+				}
+				numCurrMove=numCurrMove+1;
+                console.log("play next move 2 | numCurrMove="+numCurrMove);
+				puzzleIni=false;
+                console.log("puzzleSuccessfullFinished="+puzzleSuccessfullFinished);
+				if(puzzleSuccessfullFinished){
+					puzzleFinish=false;
+					console.log("numCurrPuzzle  : "+numCurrPuzzle+" allPuzzles.puzzles.length= "+allPuzzles.puzzles.length+" numCurrMove="+numCurrMove);
+					/*
+					if ( numCurrMove>1 && confirm( 'Bien joué : puzzle terminé ! Reload Puzzle ?' ) ) {
+						Reload();
+					} else {
+						Next();
+					}*/
+					if(usePuzzleErrorRepeat){
+                        console.log("usePuzzleErrorRepeat="+usePuzzleErrorRepeat);	
+
+                        for (var i = 1; i < puzzlesErrorsRef.length; i++) {
+                            var puzzleRef = puzzlesErrorsRef[i];
+                            console.log("#"+i+" puzzleRef="+puzzleRef+" numCurrPuzzle="+numCurrPuzzle);
+                            if(puzzleRef==numCurrPuzzle){
+                                console.log("Find move! test=" + (puzzlesErrorsRef.length>i+1));
+                                if(puzzlesErrorsRef.length>i+1){
+                                    numCurrPuzzle = puzzlesErrorsRef[i+1]-1;
+                                }else{
+                                    numCurrPuzzle = puzzlesErrorsRef[i]-1;
+                                }
+                                $('#idPuzzlesErrorsList option:eq("'+numCurrPuzzle+'")').prop('selected', true);
+                                console.log("#"+i+" puzzleRef="+puzzleRef+" numNextCurrPuzzle-1="+numCurrPuzzle);
+                            }
+                        }
+					}
+					Next();
+                    puzzleSuccessfullFinished=false;
+				}//if(puzzleSuccessfullFinished){
+				if(reloadPuzzleAfterError){
+					Reload();
+				}
+				reloadSolutionNextMoves();
+		};//updateStatus
+
+		var cfg = {
+		  draggable: true,
+		  position: 'start',
+		  onDragStart: onDragStart,
+		  onDrop: onDrop,
+		  onSnapEnd: onSnapEnd
+		};//cfg
+
+
+	function Next() {
+		console.log("Next numCurrPuzzle:" + numCurrPuzzle);
+		if(numCurrPuzzle<allPuzzles.puzzles.length){numCurrPuzzle++;}
+		if(numCurrPuzzle===allPuzzles.puzzles.length){
+			numCurrPuzzle--;
+			console.log("End of puzzle numCurrPuzzle:" + numCurrPuzzle);
+		}
+		loadPuzzle(numCurrPuzzle);
+		
+	}//Next
+	function Previous() {
+		console.log("Previous numCurrPuzzle:" + numCurrPuzzle);
+		if(numCurrPuzzle>0){numCurrPuzzle--;}
+		loadPuzzle(numCurrPuzzle);
+	}//Previous
+
+function sideToPlay(){
+    console.log("sideToPlay");
+    var moveColor = 'Blanc';
+    var colorBtn; 
+    var fontBtnColor;
+    if (game.turn() === 'b'){
+        moveColor = 'Noir';
+        board.orientation('black');
+        colorBtn="black";
+        fontBtnColor="white";
+    }else{
+        colorBtn="white";
+        fontBtnColor="black";
+        board.orientation('white');
+    }
+
+    console.log("sideToPlay moveColor="+moveColor);
+    $("#sideToPlay").prop("value",'Trait au '+moveColor);
+    $("#sideToPlay").prop("style","background-color:"+colorBtn+";color:"+fontBtnColor);
+
+}
+
+function majSideToPlayFromCurrentFen(){
+	console.log("majSideToPlayFromCurrentFen "+game.turn());
+	 if (game.turn() === 'b'){
+			board.orientation('black');
+            console.log("Side : Black");
+		}else{
+			board.orientation('white');
+            console.log("Side : White");
+		}
+
+}
+
+function showBestScore(){
+//customSwitches
+    var showScoreEnable = $('#customSwitches').prop('checked') ;
+    console.log("showBestScore - showScoreEnable="+showScoreEnable);
+    if(showScoreEnable){
+
+        var line;
+        var fenToFind = game.fen();
+        for (var i = 0; i < stockfishAnalyze.length; i++) {
+		    line = stockfishAnalyze[i];
+		    if(fenToFind == line[0]){
+			    console.log("showBestScore Find FEN "+fenToFind);
+                //idPuzzleRes
+                $('#idPuzzleRes').html($('#idPuzzleRes').html()+"<br/>Score:"+line[1][0][2]+"      Profondeur:"+line[1][0][4]);
+			    break;
+		    }
+	    }
+    }
+    
+}
+
+function addBadMoveToHisto(refPuzzleKo, refMovveKo){
+    console.log("addBadMoveToHisto refPuzzleKo="+refPuzzleKo+" refMovveKo="+refMovveKo+" - "+puzzlesErrorsRef.length+" puzzles KO");
+    var alreadyKO = false;
+	for (var i = 0; i < puzzlesErrorsRef.length; i++) {
+	  var badMove = puzzlesErrorsRef[i];
+        if(badMove==refPuzzleKo){
+            alreadyKO=true;
+            console.log("Puzzle already KO");
+            break;
+        }
+	}
+    if(!alreadyKO){
+        puzzlesErrorsRef.push(refPuzzleKo);
+        puzzlesMoveErrorsRef.push(refMovveKo);
+    }
+    iniPuzzleErrorList();
+}
+
+//List the detail of all puzzles
+function iniPuzzleList (){
+	console.log("iniPuzzleList "+allPuzzles.puzzles.length+" puzzles");
+	var selectHtml="\n<select style='font-size:1.25rem' name='puzzleSelector' id='puzzleSelectorId'>\n";
+	for (var i = 0; i < allPuzzles.puzzles.length; i++) {
+	  var puzzle = allPuzzles.puzzles[i];
+	  console.log("#"+i+" puzzleTitle:" + puzzle.puzzleTitle);
+	  selectHtml+="\n<option value='"+i+"' >"+i+" - "+puzzle.puzzleTitle+"</option>\n";
+	}
+	selectHtml+="\n</select>\n";
+	$("#idPuzzleList").html(selectHtml);
+}//iniPuzzleList
+ 
+$('#idPuzzleList').on('change', function() {
+	var optSelected=$(this).find(":selected").val();
+	console.log("OnChange idPuzzleList optSelected="+optSelected);
+	loadPuzzle( optSelected);
+	usePuzzleErrorRepeat=false;
+});
+
+
+//List the detail of all puzzles
+function iniPuzzleErrorList (){
+	console.log("iniPuzzleErrorList "+puzzlesErrorsRef.length+" puzzles KO");
+	var selectHtml="\n<select style='font-size:1rem' name='puzzleSelector' id='puzzleSelectorId'>\n";
+	for (var i = 1; i < puzzlesErrorsRef.length; i++) {
+	  var puzzleRef = puzzlesErrorsRef[i]+"";
+      
+	  console.log("#"+i+" puzzleTitle KO :" + puzzleRef);
+      var puzzleRefErrorTitle = allPuzzles.puzzles[puzzleRef].puzzleTitle;
+      var maxCar = 35;
+     console.log("puzzleRefErrorTitle='"+puzzleRefErrorTitle+ "' size:"+puzzleRefErrorTitle.length);
+      if(puzzleRefErrorTitle.length>maxCar){
+            puzzleRefErrorTitle=puzzleRefErrorTitle.substring(0,maxCar)+"...";
+      }
+    console.log("puzzleRefErrorTitle='"+puzzleRefErrorTitle+ "' size:"+puzzleRefErrorTitle.length);
+	  selectHtml+="\n<option style='font-size:1rem' value='"+puzzleRef+"' >"+puzzleRef+" - "+puzzleRefErrorTitle+" - #"+((puzzlesMoveErrorsRef[i]/2)+1)+"</option>\n";
+	}
+	selectHtml+="\n</select>\n";
+	$("#idPuzzlesErrorsList").html(selectHtml);
+}//iniPuzzleErrorList
+
+function selectedErrorPuzzle(){
+	console.log("selectedErrorPuzzle - numCurrPuzzle="+numCurrPuzzle);
+	$('#idPuzzlesErrorsList option').each(function(idx, item) {
+			console.log("selectedErrorPuzzle - #"+idx+" - value="+item.value);
+			if(numCurrPuzzle==item.value){
+				console.log("selectedErrorPuzzle - Find puzzle "+numCurrPuzzle+" on error List");
+				item.selected=true;
+			}
+	});
+}
+
+$('#idPuzzlesErrorsList').on('change', function() {
+	var optSelected=$(this).find(":selected").val();
+	console.log("OnChange idPuzzleList optSelected="+optSelected);
+	usePuzzleErrorRepeat=true;
+  loadPuzzle( optSelected);
+});
+ 
+
+function iniPuzzleChoiceList (){
+	console.log("iniPuzzleChoiceList "+puzzlesChoice.length+" puzzles");
+	var selectHtml="\n<select style='font-size:1.5rem' name='puzzleSelector' id='puzzleSelectorId'>\n";
+	for (var i = 0; i < puzzlesChoice.length; i++) {
+	  var puzzles = puzzlesChoice[i];   
+	  console.log("#"+i+" puzzleTitle:" + puzzles.title);
+	  selectHtml+="\n<option value='"+i+"' >"+i+" - "+puzzles.title+"</option>\n";
+	}
+	selectHtml+="\n</select>\n";
+	$("#idPuzzleChoice").html(selectHtml);
+}//iniPuzzleList
+ //Choose the set of puzzle = from own games/from book / from opening repertory ..
+$('#idPuzzleChoice').on('change', function() {
+	var optSelected=$(this).find(":selected").val();
+	console.log("OnChange idPuzzleChoice optSelected="+optSelected);
+	puzzlesChoosen=optSelected;
+	allPuzzles = puzzlesChoice[optSelected];
+	titleEl.html(allPuzzles.title + " - "+allPuzzles.puzzles.length+" puzzles");
+	numCurrPuzzle=0;
+	numCurrMove=0;
+	iniPuzzleList();
+    loadPuzzle(numCurrPuzzle);
+    chronoStop();
+    chronoReset();
+    chronoStart();
+    puzzlesErrorsRef=['-1'];
+    puzzlesMoveErrorsRef=['-1'];
+	usePuzzleErrorRepeat=false;
+    //numCurrMove=0;
+    console.log("OnChange idPuzzleChoice END - numCurrMove="+numCurrMove);
+    loadPuzzle(0);
+    showBestScore();
+});
+
+
+
+function loadPuzzle(puzzleNumber){
+	  console.log("loadPuzzle puzzleNumber="+puzzleNumber);
+	  currentPuzzle = allPuzzles.puzzles[puzzleNumber];
+	  puzzleFinish = false;
+	  console.log("JSON : "+JSON.stringify(currentPuzzle));
+	  console.log("puzzleTitle  : "+currentPuzzle.puzzleTitle);
+	  currentPuzzleMoves=currentPuzzle.puzzleMoves.split(' ');
+	  console.log("currentPuzzleMoves  : "+currentPuzzleMoves);
+	  puzzleTitleEl.html(currentPuzzle.puzzleTitle);
+	  var startFen = currentPuzzle.puzzleFenStart.trim();
+	  loadFenToBoard(startFen);
+	  fenHisto=[startFen];
+	  console.log("fenHisto4 = "+fenHisto);
+	  numCurrMove=0;
+	  puzzleIni = true;
+	  puzzleRes="";
+      firstMoveEnable = currentPuzzle.firstMoveEnable=='true';
+        console.log("firstMoveEnable = "+firstMoveEnable);
+	  if(activateOrientation===true && firstMoveEnable==false){
+         console.log("Orientation : normal");
+		  if(startFen.indexOf(" b ")>0){
+				board.orientation('black');
+		  }else{
+				board.orientation('white');
+		  }	
+	  }else if(activateOrientation===true && firstMoveEnable==true){
+           console.log("Orientation : affter move 1");
+		  if(startFen.indexOf(" b ")>0){
+				board.orientation('white');
+		  }else{
+				board.orientation('black');
+		  }	
+	  }
+	  $("#idPuzzleRes").html( puzzleRes);
+	  numCurrPuzzle=puzzleNumber;
+	  $('#idPuzzleList option[value="'+numCurrPuzzle+'"]').prop('selected', true);
+	  createPuzzleListMove=[''];
+	  //$("#idPuzzleSolutionComment").html("");
+     // $("#idPuzzleSolution").html("");
+	  majEngineAnalyze(startFen);
+	  console.log("puzzleInfo  : "+currentPuzzle.puzzleInfo);
+	  $("#idPuzzleInfo").html(currentPuzzle.puzzleInfo);
+	  $("#idAnalyseStockfish").hide();
+        $("#idAnalyseLeelaChessZero").hide();
+      $("#idPuzzleMasterStat").hide();
+	  $("#idPuzzleSolution").hide();
+	  showAllSolution=false;
+	  selectedErrorPuzzle();
+      
+        if(firstMoveEnable===true){
+            numCurrMove=1;
+            console.log("Load first Move numCurrMove="+numCurrMove+" firstMoveEnable="+firstMoveEnable);
+            sleep(500);
+            gameMove(currentPuzzleMoves[0]);
+            majEngineAnalyze(game.fen());
+        }else{
+            console.log("Don't load first Move");
+        }
+    sideToPlay();
+    puzzleIni = true;
+    showBestScore();
+	generateOpeningInfo();		
+}//loadPuzzle
+
+function isYourTurnToPlay(numCurrMove){
+	console.log("isYourTurnToPlay");
+	var firstMoveEnable = currentPuzzle.firstMoveEnable;
+	console.log("firstMoveEnable="+firstMoveEnable);
+	var isYourTurn = false;
+	if(firstMoveEnable){
+		isYourTurn= numCurrMove%2 == 0;
+	}else{
+		isYourTurn= numCurrMove%2 == 1;
+	}
+	console.log("isYourTurn="+isYourTurn);
+}
+
+function Reload(){
+	loadPuzzle(numCurrPuzzle);
+}//Reload
+
+function loadFenToBoard(fenToLoad){
+  board.position(fenToLoad);
+  game= new Chess(fenToLoad);
+}
+
+var createPuzzleListMove=[''];
+function LoadFenToCreatePuzzle(){
+	var fenToLoad = $("#fenToLoadId"). val();
+	console.log("fenToLoad="+fenToLoad);
+	loadFenToBoard(fenToLoad);
+	createPuzzleListMove=[''];
+	$("#idPuzzleSolutionComment").html("");
+	$("#movesToLoadId").val("");
+	if(fenToLoad.indexOf(" b ")>0){
+			board.orientation('black');
+	  }else{
+			board.orientation('white');
+	  }
+}//LoadFenToCreatePuzzle
+
+function gameMove(move){
+	console.log("gameMove move="+move);
+	console.log("gameMove - fen before="+game.fen());
+	if(wrongFen==game.fen()){
+		console.log("Wrong puzzle - reload '"+currentPuzzle.puzzleFenStart.trim()+"'");
+		game.fen(currentPuzzle.puzzleFenStart.trim());
+		console.log("gameMove 2 - fen before="+game.fen());
+	}
+	game.move(move);
+	console.log("gameMove - fen after="+game.fen());
+	board.position(game.fen(), true);
+
+	
+}//gameMove
+
+function PlayMoves(){
+	board = ChessBoard('board');
+	board.position(game.fen(), false);
+	var movesToPlay = $("#movesToLoadId"). val();
+    if(movesToPlay.indexOf(" ")>0){
+            console.log("gameMove - find multiple moves : '"+movesToPlay+"'");
+           var movesTab =  movesToPlay.split(" ");
+            for (var i = 0; i < movesTab.length; i++) {
+                var theMoveToPlay=movesTab[i];
+                console.log("gameMove - Move "+i+" : '"+theMoveToPlay+"'");
+                if(theMoveToPlay.length<2){continue;}
+                 gameMove(theMoveToPlay);
+	             createPuzzleListMove.push(theMoveToPlay+" ");
+            }
+    }else{
+        console.log("gameMove - find one move : '"+movesToPlay+"'");
+        gameMove(movesToPlay);
+	    createPuzzleListMove.push(movesToPlay+" ");
+    }
+	$("#idPuzzleSolutionComment").html(createPuzzleListMove);
+    var fenToLoad = $("#fenToLoadId"). val();
+    if(fenToLoad.length>0){
+	    if(fenToLoad.indexOf(" b ")>0){
+			    board.orientation('black');
+	      }else{
+			    board.orientation('white');
+	      }
+    }
+}//PlayMoves
+
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}//sleep
+
+function showSolution(){
+    console.log("showSolution");
+    //$("#idPuzzleSolution").html(currentPuzzle.puzzleMoves);
+	reloadSolutionNextMoves();
+	if(showAllSolution == true){
+		$("#idAnalyseStockfish").show();
+        $("#idAnalyseLeelaChessZero").show()
+        $("#idPuzzleMasterStat").show();
+		$("#idPuzzleSolution").show();
+		showAllSolution=false;
+        findMoveInMasterDb();
+	}else{
+		$("#idAnalyseStockfish").hide();
+        $("#idAnalyseLeelaChessZero").hide()
+        $("#idPuzzleMasterStat").hide();
+		$("#idPuzzleSolution").hide();
+		showAllSolution=true;
+	}
+}
+
+function reloadSolutionNextMoves(){
+	console.log("reloadSolutionNextMoves currentPuzzle="+currentPuzzle);
+	var movesTab=currentPuzzle.puzzleMoves.split(" ");
+	var res = " ";
+	//res=res+ "<input type='button' class='btn btn-success' value='>' onclick='Play(\""+currentPuzzle.puzzleMoves+"\",500);' style='padding-top:0px; padding-bottom:0px;'/>";
+	var nextMove="";
+	for (var i = 0; i < movesTab.length; i++) {
+		if(i==numCurrMove){
+			res+= "<b style='color:green' >";
+		}
+		if(i>=numCurrMove){
+			nextMove=nextMove+" "+movesTab[i];
+		}
+		res+=movesTab[i]+" ";
+	 }
+	 res="<font class='defaultFontSizeMedium'><b>Solution : </b><b class='defaultFontSizeSmall'>("+currentPuzzle.puzzleTitle+")</b><input type='button' class='btn btn-success' value='>' onclick='Play(\""+nextMove+"\",500);' />"+res;
+	
+	 
+	 res+="</b></font>";
+	 $("#idPuzzleSolution").html(res);
+}
+
+function isNumeric(str) {
+  if (typeof str != "string") return false // we only process strings!  
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+         !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+}
+
+function showAllFen(){
+	var allFen = "";
+    var allFenCopy = "";
+	var movesTab=[''];
+	var moves;
+	var fen;
+    var subFen;
+	var numFen=0;
+	var tmpGame;
+	var move;
+	var puzzle;
+	var numberFenExpected = 0;
+	var currentPuzzlesListTemp;
+    var errorsMsg="";
+    var nbErrors=0;
+    var utc = new Date().toJSON();
+    allFen+='<br>//>Build Date : '+utc;
+	for (var k = 0; k < puzzlesChoice.length; k++) {
+		currentPuzzlesListTemp=puzzlesChoice[k];
+		console.log("PuzzleList "+k+" title:" + currentPuzzlesListTemp.title);
+		allFen+='<br><br>/* ************'+"PuzzleList "+k+" title:" + currentPuzzlesListTemp.title+" *************** */";
+		for (var i = 0; i < currentPuzzlesListTemp.puzzles.length; i++) {
+		  puzzle = currentPuzzlesListTemp.puzzles[i];
+		  console.log("#"+i+" puzzleTitle:" + puzzle.puzzleTitle);
+		  fen = puzzle.puzzleFenStart;
+          var fenTrim = fen.trim();
+          if(fen.length>fenTrim.length){
+                nbErrors=nbErrors+1;
+                errorsMsg+="\n ErrorA "+nbErrors+" on puzzle #"+i+" '"+currentPuzzlesListTemp.title+"' PuzzleTitle:'"+puzzle.puzzleTitle+"' puzzleInfo;"+puzzle.puzzleInfo+" Fen '"+fen+"' avec espace";
+           }
+
+          var fenSplit = fen.trim().split(" ");
+          var lastFenVal = fenSplit[fenSplit.length-1];
+          var lastFenValIsInteger = isNumeric(lastFenVal);
+          if(fen.indexOf('-')==-1 || !lastFenValIsInteger ){
+                nbErrors=nbErrors+1;
+                if(!lastFenValIsInteger){
+                   errorsMsg+="\n Error Fen1 "+nbErrors+" on puzzle #"+i+" '"+currentPuzzlesListTemp.title+"' PuzzleTitle:'"+puzzle.puzzleTitle+"' puzzleInfo;"+puzzle.puzzleInfo+" Fen '"+fen+"' KO | lastFenVal='"+lastFenVal+"' lastFenValIsInteger="+lastFenValIsInteger;          
+                }else{
+                    errorsMsg+="\n Error Fen2 "+nbErrors+" on puzzle #"+i+" '"+currentPuzzlesListTemp.title+"' PuzzleTitle:'"+puzzle.puzzleTitle+"' puzzleInfo;"+puzzle.puzzleInfo+" Fen '"+fen+"' KO";
+                }
+          }
+          
+
+		  allFen+='<br>//'+"#"+i+" puzzleTitle:" + puzzle.puzzleTitle;
+		  allFen+='<br>'+fen;
+		  moves = puzzle.puzzleMoves;
+		  movesTab = moves.split(" ");
+		  numberFenExpected+=movesTab.length;
+		  console.log("#"+i+" numberFenExpected:" + numberFenExpected);
+		  tmpGame = new Chess(fen); 
+		  for (var j = 0; j < movesTab.length; j++) {
+			move=movesTab[j];
+            if(move.length==0){continue;}//no moves in the puzzle (0 solution)
+            if(move.length>5 && !(move.indexOf('?')>0) && !(move.indexOf('!')>0) && !(move.indexOf('x')>0 && move.indexOf('=')>0 && move.indexOf('+')>0) && !(move.indexOf('x')>0 && move.indexOf('#')>0) && !(move.indexOf('x')>0 && move.indexOf('+')>0) && !(move.indexOf('x')>0 && move.indexOf('=')>0) ){
+                nbErrors++;
+                errorsMsg+="\n Error Move "+nbErrors+" on puzzle #"+i+" move:"+move+" '"+currentPuzzlesListTemp.title+"' PuzzleTitle:'"+puzzle.puzzleTitle+"' puzzleInfo;"+puzzle.puzzleInfo+" - i:"+i+" j:"+j+" k:"+k;
+            }
+			tmpGame.move(move);
+			subFen = tmpGame.fen();
+            if (tmpGame.game_over() == true) {
+                continue;
+            }
+            if(subFen==fen || fen=='8/8/8/8/8/8/8/8 w - - 0 1' || subFen=='8/8/8/8/8/8/8/8 w - - 0 1'){
+                nbErrors++;
+                errorsMsg+="\n Error SubFen "+nbErrors+" on puzzle #"+i+" '"+currentPuzzlesListTemp.title+"' PuzzleTitle:'"+puzzle.puzzleTitle+"' puzzleInfo;"+puzzle.puzzleInfo+"- i:"+i+" j:"+j+" k:"+k;
+            }
+			numFen++;
+			console.log("Puzzle "+i+"-"+j+" numFen="+numFen+" - PuzzleList "+k+" title:" + currentPuzzlesListTemp.title);
+			allFen+=';'+subFen;
+		  }
+		}
+	}
+    if(errorsMsg.length>0){
+        console.log(errorsMsg);
+        alert(nbErrors+" errors : "+"\n"+errorsMsg);
+    }
+
+    //allFenCopy=allFen;
+    //allFenCopy=replaceAll(allFen, '<br>', '\\n');
+    allFenCopy=replaceAll(allFen, '<br>', '\n');
+    //CopyTextToClipboard(allFenCopy);
+	$("#idPuzzleSolution").html(numFen+" fen found!<br/>"+allFen);
+	$("#idPuzzleSolution").show();
+}
+
+function replaceAll(str, find, replace) {
+  return str.replace(new RegExp(find, 'g'), replace);
+}
+
+function majEngineAnalyze(fenToFind){
+    majStockfishAnalyze(fenToFind);
+    majLeelaChessZeroAnalyze(fenToFind);
+}
+
+var lastStockfishAnalyze="";
+function majStockfishAnalyze(fenToFind){
+	console.log("majStockfishAnalyze Load "+stockfishAnalyze.length+" fen");
+	var line;
+	var analyseTable;
+    var findMv = false;
+	for (var i = 0; i < stockfishAnalyze.length; i++) {
+		line = stockfishAnalyze[i];
+		if(fenToFind == line[0]){
+            findMv=true;
+			console.log("majStockfishAnalyze Find FEN "+fenToFind);
+			analyseTable=tabToHtml(line, "Stockfish");
+			$("#idAnalyseStockfish").html("<hr><b>My Move Stockfish Analyse : </b><br>"+analyseTable+"<hr><b> Last Opponent Move Stockfish Analyse : </b><br>"+lastStockfishAnalyze);
+			break;
+		}
+	}
+	if(findMv==false){
+        $("#idAnalyseStockfish").html("<hr><b>No Stockfish analyze found</b>");
+    }
+	lastStockfishAnalyze=analyseTable;
+    
+}
+
+function majLeelaChessZeroAnalyze(fenToFind2){
+	console.log("majLeelaChessZeroAnalyze Load "+leelaChessZeroAnalyze.length+" fen");
+	var line2;
+	var analyseTable2;
+    var findMv2 = false;
+	for (var i = 0; i < leelaChessZeroAnalyze.length; i++) {
+		line2 = leelaChessZeroAnalyze[i];
+		if(fenToFind2 == line2[0]){
+            findMv2=true;
+			console.log("majLeelaChessZeroAnalyze Find FEN "+fenToFind2);
+			analyseTable2=tabToHtml(line2, "Leela Chess Zero");
+			$("#idAnalyseLeelaChessZero").html("<hr><b>My Move Leela Chess Zero Analyse : </b><br>"+analyseTable2);
+			break;
+		}
+	}
+	if(findMv2==false){
+        $("#idAnalyseLeelaChessZero").html("<hr><b>No Leela Chess Zero analyze found</b>");
+    }
+}
+	var findMoveInMasterDb = function() {
+			var findGames = false;
+			var fenToSearch=game.fen().substr(0,game.fen().indexOf(' '));
+			
+			console.log('Master db info ='+mastersGamesDbInfo);
+			console.log('Master db ='+openingMastersUCI.length+' moves');
+			
+			for (i = 0; i < openingMastersUCI.length; i++) {
+				if(openingMastersUCI[i][0]==fenToSearch){
+				   console.log('find fen in chess master DB  ');
+					//mastergames.html(openingMastersUCI[i][1]);
+					$("#idPuzzleMasterStat").html("Master Stat. : "+dbMasterStatToHtml(openingMastersUCI[i]));
+					findGames=true;
+					break;
+				}
+			}
+			if(findGames==false){$("#idPuzzleMasterStat").html('No master game found');}
+            generateOpeningInfo();
+		}
+function dbMasterStatToHtml(masterMoves){
+			var masterMv;
+			var html = "";
+			console.log("dbMasterStatToHtml masterMoves='"+masterMoves+"'");
+            var masterFontSize = 28;
+			for (i = 0; i < masterMoves.length; i++) {
+				if(i==0){continue;}
+				masterMv = masterMoves[i];
+				console.log("dbMasterStatToHtml masterMv='"+masterMv+"'");
+				var move = masterMv[0];
+				var pourcentage = masterMv[1];
+				var nbOccurences = masterMv[2];
+				console.log("dbMasterStatToHtml move="+move+" pourcentage="+pourcentage+" nbOccurences="+nbOccurences);
+				if(pourcentage>19){
+					html=html
+					+"<input type='button' class='btn btn-primary' value='>>' onclick='playMasterMoves(\""+move+"\",250);' style='padding-top:0px; padding-bottom:0px;'/>"
+					
+					+"<b class='defaultFontSizeBig' style='color:green'>"+move+" "+pourcentage+"%</b>("+nbOccurences+")";
+				}else if(pourcentage>9){
+					html=html
+					+"<input type='button' class='btn btn-primary' value='>>' onclick='playMasterMoves(\""+move+"\",250);' style='padding-top:0px; padding-bottom:0px;'/>"
+					+" <b class='defaultFontSizeBig'>"+move+" "+pourcentage+"%</b>("+nbOccurences+")";
+				}else{
+					html=html+" <i class='defaultFontSizeBig' style='color:grey'>"+move+" "+pourcentage+"%("+nbOccurences+")</i>";
+				}
+			}
+			console.log("dbMasterStatToHtml html="+html);
+			return html;
+		}
+
+function generateOpeningInfo(){
+    var findOpening=false;
+    var fenToSearch=game.fen().substr(0,game.fen().indexOf(' '));
+    console.log("generateOpeningInfo fenToSearch='"+fenToSearch+"'");
+    var htmlRes='';
+    var openningVar="";
+    for (i = 0; i < fenToEco.length; i++) {
+        var fen =  fenToEco[i][0].substr(0,game.fen().indexOf(' '));
+        //console.log("fen='"+fen+"' fenToSearch='"+fenToSearch+"'");
+        if(fen==fenToSearch){
+               console.log('Find ECO : '+fenToEco[i]);
+               if(fenToEco[i][3].length>1){
+               		openningVar="&nbsp;>&nbsp;"+fenToEco[i][3];
+               }
+                htmlRes="<b class='defaultFontSizeMedium'>ECO:"+fenToEco[i][1]+"&nbsp;>&nbsp;"+fenToEco[i][2]+openningVar+"</b>";
+                console.log('Find ECO HTML='+htmlRes);
+                $('#openingInfoId').html(htmlRes);
+                findOpening=true;
+               break;     
+        }
+    }
+    if(findOpening==false){
+        console.log("generateOpeningInfo Fen not found in Db");
+         $('#openingInfoId').html("");
+    }
+//opningName
+}
+	
+		async function playMasterMoves(movesToPLay, speed){
+			console.log('playMasterMoves '+movesToPLay, " speed="+speed);
+			var currentBoardFen = game.fen();
+    		game.move(movesToPLay, {sloppy: true});
+			board.position(game.fen());
+			await sleep(speed);
+			var findGames = false;
+    		for (j = 0; j < 10; j++) {
+				var fenToSearch=game.fen().substr(0,game.fen().indexOf(' '));
+        		for (i = 0; i < openingMastersUCI.length; i++) {
+					if(openingMastersUCI[i][0]==fenToSearch){
+						findGames=true;
+					   console.log(i+'# find fen in chess master DB  ');
+					   game.move(openingMastersUCI[i][1][0], {sloppy: true});
+						board.position(game.fen());
+						await sleep(speed);
+						break;
+					}
+				}
+				if(findGames==false){
+					break;
+				}
+        		await sleep(speed);
+    		}
+			await sleep(7000);
+			board.position(currentBoardFen);
+			game= new Chess(currentBoardFen);
+		
+		}
+
+document.getElementById("movesToLoadId").onkeypress = function(event){
+	if (event.keyCode == 13 ){//|| event.which == 13){
+		console.log("movesToLoadId-You are pressed enter");
+       // if($(this).val().indexOf(" ")>0){
+            //split n moves
+
+      //  }else{
+            PlayMoves();
+      //  }
+		
+        $(this).val('');
+	}
+};
+
+document.getElementById("fenToLoadId").onkeypress = function(event){
+	if (event.keyCode == 13 ){//|| event.which == 13){
+		console.log("fenToLoadId-You are pressed enter");
+		LoadFenToCreatePuzzle();
+        
+	}
+};
+
+function ReversePuzzleOrder(){
+	allPuzzles.puzzles.reverse(); 
+	iniPuzzleList();
+	numCurrPuzzle=0;
+    numCurrMove=0;
+	loadPuzzle(numCurrPuzzle);
+    chronoReset();
+}
+
+function puzzleCreator(){
+    $("#idBuildPuzzle").toggle();
+	$("#idAnalyseStockfish").hide();
+    $("#idAnalyseLeelaChessZero").hide();
+    $("#idPuzzleMasterStat").hide();
+	$("#idPuzzleSolution").hide();
+    $("#idTitle").html("Puzzle creator");
+}
+
+function changeChessBoardSize(size){
+    console.log('Change chessnboard size to '+size+' px');
+    document.getElementById('board').style='width:'+size+'px;float: none !important;margin-left: auto;margin-right: auto;'
+    board.resize();
+}
+function CopyTextToClipboard() {
+		  // Create a "hidden" input
+		  var aux = document.createElement("input");
+		  // Assign it the value of the specified element
+		  var fenToCopy = game.fen();
+		  aux.setAttribute("value", fenToCopy);
+		  // Append it to the body
+		  document.body.appendChild(aux);
+		  // Highlight its content
+		  aux.select();
+		  // Copy the highlighted text
+		  document.execCommand("copy");
+		  // Remove it from the body
+		  document.body.removeChild(aux);
+			alert('FEN '+fenToCopy+' copied to clipboard !' );
+}
+
+function CopyTextToClipboardFromVar(txtToCopy) {
+		  // Create a "hidden" input
+		  var aux = document.createElement("input");
+		  // Assign it the value of the specified element
+		  aux.setAttribute("value", txtToCopy);
+		  // Append it to the body
+		  document.body.appendChild(aux);
+		  // Highlight its content
+		  aux.select();
+		  // Copy the highlighted text
+		  document.execCommand("copy");
+		  // Remove it from the body
+		  document.body.removeChild(aux);
+			alert('txtToCopy= '+txtToCopy+' copied to clipboard !' );
+}
+
+	async function Play(movesToPLay, speed){
+			//var movesToPLay='c3b1 c2b2 h8g8 f1b1 b7b5 h1g1 e6c4 g2f1 f8f7 f1c4 b5c4 b2e2 c4c3 e2c4 d8f8 f2f4';
+    		console.log('Play '+movesToPLay);
+			var currentBoardFen = game.fen();
+    		const moves = movesToPLay.split(' ');
+    		for (i = 0; i < moves.length; i++) {
+        		var move =  moves[i];
+        		console.log('Play '+move);
+        		var mvBoard = move.slice(0, 2) + "-" + move.slice(2);
+        		console.log('mvBoard '+mvBoard);
+				game.move(move, {sloppy: true});
+        		 board.position(game.fen());
+        		await sleep(speed);
+    		}
+			await sleep(7000);
+			board.position(currentBoardFen);
+			game= new Chess(currentBoardFen);
+			
+	}
+		
+	function sleep(ms) {
+  		return new Promise(resolve => setTimeout(resolve, ms));
+	}		
+	
+	function tabToHtml(myTab, engine){
+	//	["5rBk/5pp1/5q2/8/8/8/2Q5/4K2R b K - 1 1",
+	//		[[1,1,"Mate -2","f6h6",27,"f6h6 h1h6 g7h6 c2h7"]
+	//		,[2,2,"Mate -2","f6h4",27,"f6h4 h1h4 h8g8 c2h7"]
+	//		,[3,3,"Mate -1","h8g8",27,"h8g8 c2h7"]]],
+			console.log('tabToHtml myTab='+myTab);
+var allMoves = myTab[1];
+			var tab="<table class='table'><tr><td class='defaultFontSizeMedium'>FEN</td><td class='defaultFontSizeSmall'>"+myTab[0]
+				+"</td></tr></table><b>Next "+engine+" best moves :</b><font class='defaultFontSize'>("+allMoves[0][6]+" | version:"+ allMoves[0][7]+" | Net:"+ allMoves[0][8]+")</font><table class='table'><tr align='center'><td class='defaultFontSizeMedium'><b>#</b></td><td class='defaultFontSizeMedium'><b>Move</b></td><td class='defaultFontSizeMedium'><b>CP</b></td><td class='defaultFontSizeMedium'><b>Depth</b></td><td align='left' class='defaultFontSizeMedium'><b>Next engine moves</b></td></tr>";
+			
+            
+			var colorStyle
+			for (i = 0; i < allMoves.length; i++) {
+				var mvCp = allMoves[i][2];
+				var mvDepth = allMoves[i][4];
+                var engineVersion = "engine:"+ allMoves[i][6]+"   version:"+ allMoves[i][7]+"   Network:"+ allMoves[i][8];
+				if(i>2){
+					tab+="<tr align='center' style='color:grey'>";
+				}else{
+					tab+="<tr align='center'>";
+				}
+				//#
+				tab+="<td>["+allMoves[i][1]+"]</td>";//#
+				//Move
+				if(i===0){
+					tab+="<td style='color:green' class='defaultFontSizeBig'><b>"+allMoves[i][3]+"</b></td>";//Move
+				}else{
+					tab+="<td class='defaultFontSizeMedium'><b>"+allMoves[i][3]+"</b></td>";//Move
+				}
+				
+				//CP
+				if(mvCp<0 && i<3){
+					tab+="<td style='color:red' class='defaultFontSizeMedium'><b><span title='"+engineVersion+"'>"+mvCp+"</span></b></td>";//CP
+				}else if(i<3 && mvCp>50){
+					tab+="<td style='color:green' class='defaultFontSizeBig'><b><span title='"+engineVersion+"'>"+mvCp+"</span></b></td>";//CP
+				}else{
+					tab+="<td class='defaultFontSizeMedium'><span title='"+engineVersion+"'>"+mvCp+"</span></td>";//CP
+				}
+				//Depth
+				if(mvDepth<30 && i<3){
+					tab+="<td style='color:red' class='defaultFontSizeMedium'><span  title='"+engineVersion+"'>"+mvDepth+"</span></td>";//Depth
+				}else{
+					tab+="<td class='defaultFontSizeMedium'><span title='"+engineVersion+"'>"+mvDepth+"</span></td>";//Depth
+				}
+                var shortPv = getShortPv(allMoves[i][5]);
+                console.log("tabToHtml shortPv='"+shortPv+"'");
+				//Next engine moves
+				tab+="<td align='left' class='defaultFontSizeMedium'>"
+					+"<input type='button' class='btn btn-success' value='>>' onclick='Play(\""+shortPv+"\",250);' style='padding-top:0px; padding-bottom:0px;'/>"
+					+"<input type='button' class='btn btn-success' value='>' onclick='Play(\""+shortPv+"\",500);' style='padding-top:0px; padding-bottom:0px;'/>"
+                    +"<input type='button' class='btn btn-success' value='->' onclick='Play(\""+allMoves[i][5]+"\",500);' style='padding-top:0px; padding-bottom:0px;'/>"
+					+shortPv+"</td>";
+				tab+="</tr>"
+				;
+			}
+			return tab+"</table>";
+		}
+
+        function getShortPv(pv){
+            var movesTab =  pv.split(" ");
+            var nbMxMv = 12;
+            if(movesTab.length<nbMxMv){return pv;}
+            var shortPv = "";
+            for (var i = 0; i < nbMxMv; i++) {
+                    shortPv=shortPv+movesTab[i]+" ";    
+            }
+            return shortPv.slice(0, -1);
+        }
+		
+		function flipBoard(){
+			board.orientation('flip');
+			activateOrientation=false;
+			//if(startFen.indexOf(" b ")>0){
+			//		board.orientation('black');
+			//  }else{
+			//		board.orientation('white');
+			//  }
+		}
+	//EXECUTE COMMANDS
+		board = ChessBoard('board', cfg);
+		var allPuzzles = puzzlesChoice[puzzlesChoosen];
+        numCurrPuzzle=0;
+		numCurrMove=0;
+		loadPuzzle(numCurrPuzzle);	
+		updateStatus();
+		console.log(JSON.stringify(allPuzzles));
+		titleEl.html(allPuzzles.title + " - "+allPuzzles.puzzles.length+" puzzles");
+		$("#idBuildPuzzle").hide();
+		$("#idAnalyseStockfish").hide();
+		$("#idPuzzleSolution").hide();
+		$("#idAnalyseLeelaChessZero").hide();
+		iniPuzzleList();
+		iniPuzzleChoiceList();
+        numCurrMove=0;
+        console.log("EXECUTE COMMANDS  END - numCurrMove="+numCurrMove);
+        loadPuzzle(0);
+        //feather.replace();
+		
+    
+
+//////////////////////////////////CHRONO///////////////
+var startTime = 0;
+var start = 0;
+var end = 0;
+var diff = 0;
+var timerID = 0;
+window.onload = chronoStart;
+function chrono(){
+	end = new Date();
+	diff = end - start;
+	diff = new Date(diff);
+	var msec = diff.getMilliseconds();
+	var sec = diff.getSeconds();
+	var min = diff.getMinutes();
+	var hr = diff.getHours()-1;
+	if (min < 10){
+		min = "0" + min;
+	}
+	if (sec < 10){
+		sec = "0" + sec;
+	}
+	if(msec < 10){
+		msec = "00" +msec;
+	}
+	else if(msec < 100){
+		msec = "0" +msec;
+	}
+	
+	if(sec>0 && sec%10==0 && msec<500){
+		var diffLastMove=new Date()-lastMoveTime;
+		var nbMinutesMax=4;
+		if(diffLastMove>(1000*60*nbMinutesMax)){
+			
+			var isPause = isPause();
+			console.log("Stop Chrono since "+nbMinutesMax+" minutes - no action since "+diffLastMove+" ms - start:"+start+" isPause="+isPause+" crono="+hr + ":" + min + ":" + sec + ":" + msec);
+			
+			if (!isPause ) {
+				start = new Date(start.getTime()-(1000*60*nbMinutesMax));
+			}
+			console.log("start:"+start+" isPause="+isPause);
+			document.getElementById("chronotime").value = hr + ":" + min + ":" + sec + ":" + msec;
+			chronoStop();
+			isPause = isPause();
+			console.log("isPause="+isPause);
+			return;
+		}else if(sec>0 && sec%10==0){
+			//console.log('chrono - diffLastMove='+diffLastMove);
+		}
+	}
+	document.getElementById("chronotime").value = hr + ":" + min + ":" + sec + ":" + msec;
+	timerID = setTimeout("chrono()", 100);
+}
+
+function isPause(){
+	return $("#startstop").html().indexOf(iconPause)==-1;
+}
+function chronoStart(){
+    console.log("chronoStart");
+	document.chronoForm.startstop.value = "pause!";
+//// iconPlay iconPause relaodIconLib()
+    //            <i data-feather="play"></i>
+    //            <!-- <i data-feather="pause"></i> -->
+    $("#startstop").html(iconPause);
+    relaodIconLib();
+	document.chronoForm.startstop.onclick = chronoStop;
+	document.chronoForm.reset.onclick = chronoReset;
+	start = new Date();
+	chrono();
+	lastMoveTime = new Date();
+}
+function chronoContinue(){
+    console.log("chronoContinue");
+	//document.chronoForm.startstop.value = "pause!";
+    //// iconPlay iconPause relaodIconLib()
+    $("#startstop").html(iconPause);
+    relaodIconLib();
+	document.chronoForm.startstop.onclick = chronoStop;
+	document.chronoForm.reset.onclick = chronoReset;
+	start = new Date()-diff;
+	start = new Date(start);
+	lastMoveTime = new Date();
+	chrono();
+}
+function chronoReset(){
+    console.log("chronoReset");
+	document.getElementById("chronotime").value = "0:00:00:000";
+	start = new Date();
+	lastMoveTime = new Date();
+}
+function alertOnMove(move){
+
+if(move==undefined)return;
+    //"!", "?", "!!", "!?", "?!", et "??"
+/*
+1 good move (traditional "!") : bon coup
+2 poor move (traditional "?") : mauvais coup
+3 very good move (traditional "!!") : coup excellent
+4 very poor move (traditional "??") : très mauvais coup
+5 speculative move (traditional "!?") : coup spéculatif
+6 questionable move (traditional "?!") : coup douteux
+*/
+    if(move.indexOf("??")>0){
+        alert('Très mauvais coup adverse !');
+    }else if(move.indexOf("!!")>0){
+        alert('Coup adverse excellent !');
+    }else if(move.indexOf("?!")>0){
+        alert('Coup adverse douteux !');
+    }else if(move.indexOf("!?")>0){
+        alert('Coup adverse spéculatif !');
+    }else if(move.indexOf("!")>0){
+        alert('Coup adverse bon !');
+    }else if(move.indexOf("?")>0){
+        alert('Mauvais coup adverse!');
+    }
+}
+
+function chronoStopReset(){
+    console.log("chronoStopReset");
+	document.getElementById("chronotime").value = "0:00:00:000";
+	document.chronoForm.startstop.onclick = chronoStart;
+	lastMoveTime = new Date();
+}
+function chronoStop(){
+    console.log("chronoStop");
+	document.chronoForm.startstop.value = "start!";
+    // iconPlay iconPause relaodIconLib()
+    $("#startstop").html(iconPlay);
+    relaodIconLib();
+	document.chronoForm.startstop.onclick = chronoContinue;
+	document.chronoForm.reset.onclick = chronoStopReset;
+	clearTimeout(timerID);
+	lastMoveTime = new Date();
+}
+
+function relaodIconLib(){
+   // feather.replace();
+}
+
+$(document).keydown(function(e) {
+//		<input type='button' id='before' value='Puzzle Précédent' class='btn btn-success' onclick='Previous()' />&nbsp;
+//		<input type='button' id='after' value='Puzzle Suivant' class='btn btn-success'  onclick='Next()' />&nbsp;
+		if(e.keyCode===37){Previous();}
+		if(e.keyCode===39){Next();}
+	});
+	</script>
+</body>

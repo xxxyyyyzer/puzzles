@@ -1,0 +1,154 @@
+<!-- COPIED FROM https://phor.net/gadgets/fen2html/ -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>CHESS PUZZLES</title>
+	<script src='allPuzzles.js'></script>
+	<script src='stockfishAnalyze.js'></script>
+    <script src='leelaChessZeroAnalyze.js'></script>
+	<script src='chess.min.js'></script>
+	<script src='jquery.min.js'></script>
+    <style>
+      table.chess { border: 1px solid black; margin: 2px; font-size: xx-large}
+      table.chess td { width: 1.5em; height: 1.5em; padding: 0; margin: 1em; vertical-align: middle; text-align: center }
+      table.chess tr td { background: #F2E0CB }
+      table.chess tr:nth-child(odd) td:nth-child(even), table.chess tr:nth-child(even) td:nth-child(odd)  { background: #C4AA8B }
+      .PiecesCss{width: 50px;height: 50px;}
+    </style>
+  </head>
+  <body class="my-5">
+ <div class="container">
+<div class='row'>
+	<div class='col-lg-12'>
+<div class='inTheMiddle'>
+			<h2><div id='idTitle'></div></h2><br/>
+			<div id='idPuzzleInfo'></div>
+			<div id='idPuzzleRes'></div>
+			<div id='idPuzzleChoice'></div><div id='idPuzzleList'></div>
+</div>
+</div>
+</div> <!-- /container -->
+   <div class="container">
+      <h1>PUZZLES</h1>
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="solutionsCheckBox">
+        <label class="form-check-label" for="solutionsCheckBox">Solutions</label>
+      </div>
+        <div id='puzzlesToPrint'></div>
+    </div> <!-- /container -->
+    <script type='text/javascript'>
+      const pieces = {
+        K:"♔", Q:"♕", R:"♖", B:"♗", N:"♘", P:"♙", 
+        k:"♚", q:"♛", r:"♜", b:"♝", n:"♞", p:"♟",
+      }
+        const piecesImages = {
+        K:"<img src='wK.png' class='PiecesCss' alt=''/>", Q:"<img src='wQ.png' class='PiecesCss' alt=''/>", R:"<img src='wR.png' class='PiecesCss' alt=''/>", B:"<img src='wB.png' class='PiecesCss' alt=''/>", N:"<img src='wN.png' class='PiecesCss' alt=''/>", P:"<img src='wP.png' class='PiecesCss' alt=''/>", 
+        k:"<img src='bK.png' class='PiecesCss' alt=''/>", q:"<img src='bQ.png' class='PiecesCss' alt=''/>", r:"<img src='bR.png' class='PiecesCss' alt=''/>", b:"<img src='bB.png' class='PiecesCss' alt=''/>", n:"<img src='bN.png' class='PiecesCss' alt=''/>", p:"<img src='bP.png' class='PiecesCss'/>",
+      }
+      function fentohtml(fenVal, puzzleId) {
+        var res = fenVal.trim()
+          .replace(/\s+.*/,"")
+          .replace(/\d+/g, n => " ".repeat(n))
+          .replace(/./g, char => "<td>" + (piecesImages[char] || char))
+          .replace(/^|<td>\//g,"\n  <tr>");
+        res = "<table class=\"chess\" id='"+puzzleId+"'>" + res + "\n</table>";
+//        document.getElementById("out").innerHTML = res;
+        return res;
+        //$("#selectedPuzzles").html(res);
+      }
+     $("#selectedPuzzles").html( fentohtml("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "idTest"));
+    </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-52764-3"></script>
+    <script>
+      function iniPuzzleChoiceList (){
+	console.log("iniPuzzleChoiceList "+puzzlesChoice.length+" puzzles");
+	var selectHtml="\n<select style='font-size:1.5rem' name='puzzleSelector' id='puzzleSelectorId'>\n";
+	for (var i = 0; i < puzzlesChoice.length; i++) {
+	  var puzzles = puzzlesChoice[i];   
+	  console.log("#"+i+" puzzleTitle:" + puzzles.title);
+	  selectHtml+="\n<option value='"+i+"' >"+i+" - "+puzzles.title+"</option>\n";
+	}
+	selectHtml+="\n</select>\n";
+	$("#idPuzzleChoice").html(selectHtml);
+}//iniPuzzleList
+
+ //Choose the set of puzzle = from own games/from book / from opening repertory ..
+$('#idPuzzleChoice').on('change', function() {
+	var optSelected=$(this).find(":selected").val();
+	console.log("OnChange idPuzzleChoice optSelected="+optSelected);
+	puzzlesChoosen=optSelected;
+	allPuzzles = puzzlesChoice[optSelected];
+    iniPuzzleList();
+});
+
+//List the detail of all puzzles
+function iniPuzzleList (){
+	console.log("iniPuzzleList "+allPuzzles.puzzles.length+" puzzles");
+	var selectHtml="\n<select style='font-size:1.25rem' name='puzzleSelector' id='puzzleSelectorId'>\n";
+    const htmlDeb = "\n<div class='row'>\n\t<div class='col-lg-6'>"
+    var htmlOutPut=htmlDeb+"";
+    var fen;
+	for (var i = 0; i < allPuzzles.puzzles.length; i++) {
+        //INI select values
+	  var puzzle = allPuzzles.puzzles[i];
+	  console.log("#"+i+" puzzleTitle:" + puzzle.puzzleTitle);
+	  selectHtml+="\n<option value='"+i+"' >"+i+" - "+puzzle.puzzleTitle+"</option>\n";
+        //INI PUZZLE
+        if(i%2==0 && i>0){
+            htmlOutPut=htmlOutPut+"\n\t</div>\n</div>\n"+htmlDeb;
+        }else if(i>0){
+            htmlOutPut=htmlOutPut+"\n\t</div>\n"+"\n\t<div class='col-lg-6'>";
+                    
+        }else{
+                
+        }
+      
+    if($('#solutionsCheckBox').prop('checked')){
+        //Solution
+        htmlOutPut+="<b>"+(i+1)+"/"+allPuzzles.puzzles.length+">"+puzzle.puzzleTitle+"</b><br/>"+puzzle.puzzleMoves+"<br/>"+puzzle.puzzleSolutionComment;
+    }else{
+          //Puzzles
+        if(puzzle.firstMoveEnable=='true'){
+            var firstMove = puzzle.puzzleMoves.split(" ")[0];
+            var chess = new Chess(puzzle.puzzleFenStart)
+			chess.move(firstMove);
+            fen=chess.fen();
+        }else{
+            fen =puzzle.puzzleFenStart;
+        }
+        var trait = 'Trait au blanc';    
+        if(fen.indexOf(' w ')>0){
+            trait="<font style='color:white; background-color:black'>Trait au noir</font>";
+        }
+        htmlOutPut+="<b>"+(i+1)+"/"+allPuzzles.puzzles.length+">"+puzzle.puzzleTitle+"</b><br/>"+puzzle.puzzleInfo+"<br/>"+trait+"<br/>"+fentohtml(puzzle.puzzleFenStart,"puzzle"+i);
+	}//if($('#solutionsCheckBox').prop('checked')){
+
+}
+
+    htmlOutPut=htmlOutPut+"\n\t</div>\n</div>\n";
+    console.log("htmlOutPut="+htmlOutPut);
+	selectHtml+="\n</select>\n";
+    
+	$("#idPuzzleList").html(selectHtml);
+    $("#puzzlesToPrint").html(htmlOutPut);
+}//iniPuzzleList
+ 
+$('#idPuzzleList').on('change', function() {
+	var optSelected=$(this).find(":selected").val();
+	console.log("OnChange idPuzzleList optSelected="+optSelected);
+	
+});
+$('#solutionsCheckBox').on('change', function() {
+iniPuzzleList();
+});
+////////////////////////////////INI//////
+var allPuzzles = puzzlesChoice[0];
+iniPuzzleList();
+iniPuzzleChoiceList();
+    </script>
+  </body>
+</html>
